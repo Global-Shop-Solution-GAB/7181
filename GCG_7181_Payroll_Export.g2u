@@ -1,0 +1,242 @@
+﻿Program.Sub.ScreenSU.Start
+Gui.ExportForm..Create(BaseForm)
+Gui.ExportForm..Caption("Select Location For File Export")
+Gui.ExportForm..Size(6060,2025)
+Gui.ExportForm..MinX(0)
+Gui.ExportForm..MinY(0)
+Gui.ExportForm..Position(0,0)
+Gui.ExportForm..AlwaysOnTop(False)
+Gui.ExportForm..FontName("Tahoma")
+Gui.ExportForm..FontSize(8.25)
+Gui.ExportForm..ControlBox(True)
+Gui.ExportForm..MaxButton(True)
+Gui.ExportForm..MinButton(True)
+Gui.ExportForm..MousePointer(0)
+Gui.ExportForm..Moveable(True)
+Gui.ExportForm..Sizeable(True)
+Gui.ExportForm..ShowInTaskBar(True)
+Gui.ExportForm..TitleBar(True)
+Gui.ExportForm..Event(UnLoad,ExportForm_UnLoad)
+Gui.ExportForm.txtFilePath.Create(TextBox,"",True,4995,300,0,255,585,True,0,"Tahoma",8.25,,1)
+Gui.ExportForm.cmdBrowseFiles.Create(Button)
+Gui.ExportForm.cmdBrowseFiles.Enabled(True)
+Gui.ExportForm.cmdBrowseFiles.Visible(True)
+Gui.ExportForm.cmdBrowseFiles.Zorder(0)
+Gui.ExportForm.cmdBrowseFiles.Size(495,375)
+Gui.ExportForm.cmdBrowseFiles.Position(5310,555)
+Gui.ExportForm.cmdBrowseFiles.Caption("^")
+Gui.ExportForm.cmdBrowseFiles.FontName("Tahoma")
+Gui.ExportForm.cmdBrowseFiles.FontSize(8.25)
+Gui.ExportForm.cmdBrowseFiles.Event(Click,cmdBrowseFiles_Click)
+Gui.ExportForm.lblSaveFileMessage.Create(Label,"Save file to:",True,870,195,0,300,345,True,0,"Tahoma",8.25,,0,0)
+Gui.ExportForm.lblSaveFileMessage.BorderStyle(0)
+Gui.ExportForm.cmdCancelButton.Create(Button)
+Gui.ExportForm.cmdCancelButton.Enabled(True)
+Gui.ExportForm.cmdCancelButton.Visible(True)
+Gui.ExportForm.cmdCancelButton.Zorder(0)
+Gui.ExportForm.cmdCancelButton.Size(765,345)
+Gui.ExportForm.cmdCancelButton.Position(1125,990)
+Gui.ExportForm.cmdCancelButton.Caption("Cancel")
+Gui.ExportForm.cmdCancelButton.FontName("Tahoma")
+Gui.ExportForm.cmdCancelButton.FontSize(8.25)
+Gui.ExportForm.cmdCancelButton.Event(Click,ExportForm_UnLoad)
+Gui.ExportForm.cmdOkayButton.Create(Button)
+Gui.ExportForm.cmdOkayButton.Enabled(True)
+Gui.ExportForm.cmdOkayButton.Visible(True)
+Gui.ExportForm.cmdOkayButton.Zorder(0)
+Gui.ExportForm.cmdOkayButton.Size(765,345)
+Gui.ExportForm.cmdOkayButton.Position(285,990)
+Gui.ExportForm.cmdOkayButton.Caption("Ok")
+Gui.ExportForm.cmdOkayButton.FontName("Tahoma")
+Gui.ExportForm.cmdOkayButton.FontSize(8.25)
+Gui.ExportForm.cmdOkayButton.Event(Click,cmdOkayButton_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Variable.Global.sRunTime.Declare
+Variable.Global.sRunCYMD.Declare
+Variable.Global.sFilePath.Declare
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+f.Intrinsic.Control.Try
+
+	'Author: Jackson Meyer
+	'Date: 6/14/2023
+	'Programmed for Infinity Valve & Supply
+	'Purpose: Export certain info from SFC > Transactions > Transfer Labor to Payroll to a CSV file
+	
+	' Gather date/time for retrieving data from tables
+	F.Intrinsic.String.Left(V.Passed.888888,8,V.Global.sRunCYMD)
+	F.Intrinsic.String.Mid(V.Passed.888888,9,6,V.Global.sRunTime)
+
+	gui.ExportForm..Show	
+
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.ErrorMsg.Start
+v.Local.sError.Declare
+'Generic Error message.
+f.Intrinsic.String.Build("Project GCG_7181_Payroll_Export.g2u {0}{0}Subroutine: {1}{0}Error: {2} with Description: {3}", v.Ambient.NewLine, v.Args.CurrentSub, v.Ambient.ErrorNumber, v.Ambient.ErrorDescription, v.Local.sError)
+f.Intrinsic.UI.Msgbox(v.Local.sError)
+Program.Sub.ErrorMsg.End
+
+Program.Sub.cmdBrowseFiles_Click.Start
+f.Intrinsic.Control.Try
+
+	V.Local.sError.Declare(String)
+	V.Local.sRet.Declare(String)
+	V.Local.sFile.Declare(String)
+	V.Local.bExists.Declare
+	v.Local.sDate.Declare
+	F.Intrinsic.Control.If(V.Caller.GlobalDir.Right1,=,"\")
+		F.Intrinsic.String.Build("{0}Custom",V.Caller.GlobalDir,V.Global.sFilePath)
+	F.Intrinsic.Control.Else
+		F.Intrinsic.String.Build("{0}\Custom",V.Caller.GlobalDir,V.Global.sFilePath)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.File.DirExists(V.Global.sFilePath,V.Local.bExists)
+	F.Intrinsic.Control.If(V.Local.bExists.Not)
+		F.Intrinsic.File.CreateDir(V.Global.sFilePath)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Build("{0}\7181",V.Global.sFilePath,V.Global.sFilePath)
+	F.Intrinsic.File.DirExists(V.Global.sFilePath,V.Local.bExists)
+	F.Intrinsic.Control.If(V.Local.bExists.Not)
+		F.Intrinsic.File.CreateDir(V.Global.sFilePath)
+	F.Intrinsic.Control.EndIf
+	
+	F.Intrinsic.String.Format(v.Ambient.Date,"MMDDYY",V.Local.sDate)
+	
+	'F.Intrinsic.String.Build("PyrlExport{0}{1}",V.Global.sRunCYMD,V.Global.sRunTime,V.Local.sFile)
+	
+	F.Intrinsic.String.Build("{0}{1}PyrlExport.csv", V.Local.sDate,V.Caller.CompanyCode, V.Local.sFile)
+	
+	Function.Intrinsic.UI.ShowSaveFileDialog(V.Local.sFile,"Comma Separated File|*.csv", v.Global.sFilePath,V.Local.sRet)
+	F.Intrinsic.Control.If(V.Local.sRet,<>,"***CANCEL***")
+		Gui.ExportForm.txtFilePath.Text(V.Local.sRet)
+	F.Intrinsic.Control.EndIf
+
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdBrowseFiles_Click.End
+
+Program.Sub.cmdOkayButton_Click.Start
+f.Intrinsic.Control.Try
+
+	v.Local.sSQLPyrlLaborXfer.Declare
+	v.Local.iRet.Declare
+	v.Local.sDate.Declare
+	v.Local.sDefaultMessage.Declare
+	v.Local.iCnt.Declare
+	v.Local.iCnt2.Declare
+	v.Local.sEmployee.Declare
+	v.Local.sBegDate.Declare
+	v.Local.sEndDate.Declare
+	v.Local.sSQLTimeAttendance.Declare
+	v.Local.fMin.Declare
+	v.local.fHours.Declare
+	v.Local.sFormattedHours.Declare
+	v.Local.sChargeDate.Declare
+	v.Local.i.Declare
+	v.Local.dTemp.Declare
+	
+	' Set final filepath to be whatever is in textfield
+	' First check for empty string, in which case we will just send it to default location in \\CUSTOM\7181\
+	f.Intrinsic.Control.If(V.Screen.ExportForm!txtFilePath.Text, <>, "")
+		V.Global.sFilePath.Set(V.Screen.ExportForm!txtFilePath.Text)
+	f.Intrinsic.Control.Else
+		F.Intrinsic.String.Format(v.Ambient.Date,"MMDDYY",V.Local.sDate)
+		f.Intrinsic.String.Build("{0}\CUSTOM\7181\{1}{2}PyrlExport.csv", v.Caller.GlobalDir, v.Local.sDate, v.Caller.CompanyCode, v.Global.sFilePath)
+	f.Intrinsic.Control.EndIf
+	
+	' Close form
+	gui.ExportForm..Visible(False)
+	
+	' Open connection
+	f.ODBC.Connection!con.OpenCompanyConnection
+	
+	' Create empty datatable for final dt, create all columns for Paylocity import format
+	f.Data.DataTable.Create("dtFinal", false)
+	f.Data.DataTable.AddColumn("dtFinal", "Employee_ID", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "DET", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "DETCODE", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Hours", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Amount", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Temp_Rate", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "RateCode", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Cost_Center_1", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Cost_Center_2", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Cost_Center_3", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Leave_Blank_1", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Leave_Blank_2", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "JobCode", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Shift", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Begin_Date", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "End_Date", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Workers_Comp_Code", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "TCode1", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "TCode2", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "TCode3", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "TCode4", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Sequence", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "CheckType", "String")
+	f.Data.DataTable.AddColumn("dtFinal", "Check_Number", "String")
+	
+	' Set SQL query, build datatable for PYRL_LABOR_XFER information
+	f.Intrinsic.String.Build("Select Employee as Employee_ID, 'E' as DET, RTRIM(Type+EC) as DETCODE, Hours from PYRL_LABOR_XFER where Run_Cymd = '{0}' and Run_Time = '{1}'", v.Global.sRunCYMD, v.Global.sRunTime, v.Local.sSQLPyrlLaborXfer)
+	f.Data.DataTable.CreateFromSQL("dtPyrlLaborXfer", "con", v.Local.sSQLPyrlLaborXfer)
+	
+	'Dictionary to change ECs to Paylocity's request
+	f.Data.Dictionary.Create("dictECs")
+	f.Data.Dictionary.AddItem("dictECs", "RT", "REG")
+	f.Data.Dictionary.AddItem("dictECs", "OT", "OT")
+	f.Data.Dictionary.AddItem("dictECs", "EC03", "SICK")
+	f.Data.Dictionary.AddItem("dictECs", "EC02", "VAC")
+	f.Data.Dictionary.AddItem("dictECs", "HT04", "HOL")
+	
+	'FillFromDict
+	f.Data.DataTable.FillFromDictionary("dtPyrlLaborXfer", "dictECs", "DETCODE")
+	f.Data.Dictionary.Close("dictECs")
+	
+	' Merge into final dt and close dt
+	f.Data.DataTable.Merge("dtPyrlLaborXfer", "dtFinal", False, 2)
+	f.Data.DataTable.Close("dtPyrlLaborXfer")
+	f.Data.DataTable.AcceptChanges("dtFinal")
+	
+	' Close connection
+	f.ODBC.Connection!con.Close
+	
+	' Save final dt to CSV
+	f.Data.DataTable.SaveToCSV("dtFinal", v.Global.sFilePath, False)
+	
+	' Close dt
+	f.Data.DataTable.Close("dtFinal")
+	
+	' Confirmation message w/ path
+	f.Intrinsic.String.Build("File successfully exported to {0}", v.Global.sFilePath, v.Local.sDefaultMessage)
+	f.Intrinsic.UI.Msgbox(v.Local.sDefaultMessage, "File Export Complete", 0, v.Local.iRet)
+	
+	F.Intrinsic.UI.Msgbox("Do you want to Open File?","Open File",4,V.Local.i)
+	F.Intrinsic.Control.If(V.Local.i,=,6)
+		F.Intrinsic.Task.ShellExecSync(V.Caller.Handle,"OPEN",V.Global.sFilePath,"","",5)
+	F.Intrinsic.Control.Endif
+	F.Intrinsic.Control.CallSub(ExportForm_UnLoad)
+	
+f.Intrinsic.Control.Catch
+	f.Intrinsic.Control.CallSub(ErrorMsg, CurrentSub, v.Ambient.CurrentSubroutine)
+f.Intrinsic.Control.EndTry
+Program.Sub.cmdOkayButton_Click.End
+
+Program.Sub.ExportForm_UnLoad.Start
+f.Intrinsic.Control.End
+Program.Sub.ExportForm_UnLoad.End
+
+Program.Sub.Comments.Start
+${$5$}$20.1.8245.18323$}$1
+${$6$}$jmeyer$}$20230711091054859$}$d5tDAckeVf9hIIUlD3v0rklo78E9+3l8WOlPp8MCaNT/vMEE5F33H/ESlvoAmm2rZKbSfPn6rA0=
+Program.Sub.Comments.End
